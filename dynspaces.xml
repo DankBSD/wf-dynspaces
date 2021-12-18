@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <wayfire>
-	<section name="dynspaces">
+	<plugin name="dynspaces">
 		<_short>DynSpaces</_short>
 		<category>Desktop</category>
-	</section>
+	</plugin>
 </wayfire>
