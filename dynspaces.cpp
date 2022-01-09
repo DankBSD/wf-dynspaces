@@ -110,15 +110,30 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 		return geometry;
 	}
 
+	wf::geometry_t rel2abs(wf::geometry_t geometry) {
+		auto scr_size = output->get_screen_size();
+		auto cur = output->workspace->get_current_workspace();
+		geometry.x += cur.x * scr_size.width;
+		geometry.y += cur.y * scr_size.height;
+		return geometry;
+	}
+
+	inline wf::geometry_t ws_geom(int ws) {
+		auto scr_size = output->get_screen_size();
+		auto pt = ws_point(ws);
+		return {pt.x * scr_size.width, pt.y * scr_size.height, scr_size.width, scr_size.height};
+	}
+
 	int add_ws_after(int ws) {
 		auto num = num_workspaces();
 		auto scr_size = output->get_screen_size();
 		wsids.push_back(UINT64_MAX);
 		for (int i = num - 1; i > ws; i--) wsids[i + 1] = wsids[i];
 		auto views = output->workspace->get_views_in_layer(wf::LAYER_MINIMIZED | wf::WM_LAYERS);
+		auto threshold = main_coord(ws_geom(ws + 1));
 		for (auto v : views) {
-			auto rel_geo = place_at_ws(v->get_wm_geometry(), -1 * (ws + 1));
-			if (main_coord(rel_geo) >= 0) {
+			auto abs_geo = rel2abs(v->get_wm_geometry());
+			if (main_coord(abs_geo) >= threshold) {
 				auto box = v->get_wm_geometry();
 				v->move(box.x + scr_size.width, box.y);
 			}
@@ -135,9 +150,10 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 		auto scr_size = output->get_screen_size();
 		for (int i = ws; i < num; i++) wsids[i] = wsids[i + 1];
 		auto views = output->workspace->get_views_in_layer(wf::LAYER_MINIMIZED | wf::WM_LAYERS);
+		auto threshold = main_coord(ws_geom(ws));
 		for (auto v : views) {
-			auto rel_geo = place_at_ws(v->get_wm_geometry(), -1 * ws);
-			if (main_coord(rel_geo) >= 0) {
+			auto abs_geo = rel2abs(v->get_wm_geometry());
+			if (main_coord(abs_geo) >= threshold) {
 				auto box = v->get_wm_geometry();
 				v->move(box.x - scr_size.width, box.y);
 			}
