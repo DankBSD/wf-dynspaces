@@ -48,9 +48,16 @@ struct dynspaces_workspace_implementation_t : public wf::workspace_implementatio
 };
 
 struct wayfire_dynspaces : public wf::plugin_interface_t {
+	wf::option_wrapper_t<bool> keep_empty_workspace{"dynspaces/keep_empty_workspace"};
+
 	inline wf::point_t ws_point(int num) {
 		// TODO: if (vertical) ..
 		return {num, 0};
+	}
+
+	inline wf::dimensions_t ws_gridsize(int num) {
+		// TODO: if (vertical) ..
+		return {num, 1};
 	}
 
 	inline int point_ws(wf::point_t wsp) {
@@ -73,18 +80,12 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 
 	inline void switch_to(int ws) { output->workspace->request_workspace(ws_point(ws)); }
 
-	void increase_grid() {
-		auto grid_size = output->workspace->get_workspace_grid_size();
-		// TODO: if (vertical) ..
-		grid_size.width++;
-		output->workspace->set_workspace_grid_size(grid_size);
+	inline void increase_grid() {
+		output->workspace->set_workspace_grid_size(ws_gridsize(num_workspaces() + 1));
 	}
 
-	void decrease_grid() {
-		auto grid_size = output->workspace->get_workspace_grid_size();
-		// TODO: if (vertical) ..
-		grid_size.width--;
-		output->workspace->set_workspace_grid_size(grid_size);
+	inline void decrease_grid() {
+		output->workspace->set_workspace_grid_size(ws_gridsize(num_workspaces() - 1));
 	}
 
 	// Wayfire workspaces are really just position offsets,
@@ -182,6 +183,18 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 		}
 	};
 
+	void ensure_empty() {
+		if (!keep_empty_workspace) return;
+		auto num = num_workspaces();
+		int i;
+		for (i = num - 1; i > 0; i--)
+			if (!output->workspace
+			         ->get_views_on_workspace(ws_point(i), wf::LAYER_MINIMIZED | wf::WM_LAYERS)
+			         .empty())
+				break;
+		output->workspace->set_workspace_grid_size(ws_gridsize(i + 2));
+	}
+
 	wf::signal_connection_t on_change_workspace = [=](wf::signal_data_t *ev) {
 		auto data = static_cast<wf::view_change_workspace_signal *>(ev);
 		if (data->view->has_data<dynspaces_appspace>()) {
@@ -190,6 +203,7 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 			destroy_ws(ws_by_id(appspace->wsid_ours));
 			data->view->erase_data<dynspaces_appspace>();
 		}
+		ensure_empty();
 	};
 
 	void init() override {

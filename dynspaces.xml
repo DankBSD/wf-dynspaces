@@ -2,6 +2,12 @@
 <wayfire>
 	<plugin name="dynspaces">
 		<_short>DynSpaces</_short>
+		<_long>Dynamic workspace and fullscreen app management.</_long>
 		<category>Desktop</category>
+		<option name="keep_empty_workspace" type="bool">
+			<_short>Keep an empty workspace</_short>
+			<_long>Automatically ensure there's always one empty (unoccupied) workspace at the end of the list</_long>
+			<default>true</default>
+		</option>
 	</plugin>
 </wayfire>
