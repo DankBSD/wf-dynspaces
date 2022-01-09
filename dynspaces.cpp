@@ -214,7 +214,10 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 			         ->get_views_on_workspace(ws_point(i), wf::LAYER_MINIMIZED | wf::WM_LAYERS)
 			         .empty())
 				break;
-		output->workspace->set_workspace_grid_size(ws_gridsize(i + 2));
+		if (i + 1 >= num)
+			add_ws_after(num - 1);
+		else
+			for (int w = i + 2; w < num; w++) destroy_ws(w);
 	}
 
 	wf::signal_connection_t on_change_workspace = [=](wf::signal_data_t *ev) {
