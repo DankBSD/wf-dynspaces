@@ -4,6 +4,16 @@
 		<_short>DynSpaces</_short>
 		<_long>Dynamic workspace and fullscreen app management.</_long>
 		<category>Desktop</category>
+		<option name="add_workspace" type="key">
+			<_short>Add workspace</_short>
+			<_long>Adds an empty workspace next to the currently active one</_long>
+			<default>&lt;super&gt; &lt;alt&gt; KEY_EQUAL</default>
+		</option>
+		<option name="remove_workspace" type="key">
+			<_short>Remove workspace</_short>
+			<_long>Removes the currently active workspace, merging it with the next one</_long>
+			<default>&lt;super&gt; &lt;alt&gt; KEY_MINUS</default>
+		</option>
 		<option name="keep_empty_workspace" type="bool">
 			<_short>Keep an empty workspace</_short>
 			<_long>Automatically ensure there's always one empty (unoccupied) workspace at the end of the list</_long>

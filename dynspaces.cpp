@@ -48,6 +48,8 @@ struct dynspaces_workspace_implementation_t : public wf::workspace_implementatio
 };
 
 struct wayfire_dynspaces : public wf::plugin_interface_t {
+	wf::option_wrapper_t<wf::keybinding_t> add_workspace{"dynspaces/add_workspace"};
+	wf::option_wrapper_t<wf::keybinding_t> remove_workspace{"dynspaces/remove_workspace"};
 	wf::option_wrapper_t<bool> keep_empty_workspace{"dynspaces/keep_empty_workspace"};
 	wf::option_wrapper_t<bool> fullscreen_apps_as_workspaces{
 	    "dynspaces/fullscreen_apps_as_workspaces"};
@@ -226,6 +228,29 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 		ensure_empty();
 	};
 
+	wf::key_callback do_add = [=](auto) {
+		switch_to(add_ws_after(current_ws()));
+		return true;
+	};
+
+	wf::key_callback do_remove = [=](auto) {
+		if (num_workspaces() == 1) return true;
+		auto cur = current_ws();
+		auto views = output->workspace->get_views_in_layer(wf::LAYER_MINIMIZED | wf::WM_LAYERS);
+		for (auto v : views) {
+			if (v->has_data<dynspaces_appspace>()) {
+				auto appspace = v->get_data<dynspaces_appspace>();
+				if (appspace->wsid_ours == wsids[cur]) {
+					v->fullscreen_request(output, false, ws_point(ws_by_id(appspace->wsid_ours)));
+					// This will emit the view-fullscreen-request signal we handle above
+					return true;
+				}
+			}
+		}
+		destroy_ws(cur);
+		return true;
+	};
+
 	void init() override {
 		output->workspace->set_workspace_grid_size({2, 1});
 		wsids.reserve(16);
@@ -236,8 +261,15 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 		output->connect_signal("view-fullscreen-request", &on_fullscreen);
 		output->connect_signal("view-minimize-request", &on_minimize);
 		output->connect_signal("view-change-workspace", &on_change_workspace);
+		output->add_key(add_workspace, &do_add);
+		output->add_key(remove_workspace, &do_remove);
 	};
-	void fini() override { output->workspace->set_workspace_implementation(nullptr, true); }
+
+	void fini() override {
+		output->workspace->set_workspace_implementation(nullptr, true);
+		output->rem_binding(&do_add);
+		output->rem_binding(&do_remove);
+	}
 };
 
 DECLARE_WAYFIRE_PLUGIN(wayfire_dynspaces);
