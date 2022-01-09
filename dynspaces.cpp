@@ -49,6 +49,8 @@ struct dynspaces_workspace_implementation_t : public wf::workspace_implementatio
 
 struct wayfire_dynspaces : public wf::plugin_interface_t {
 	wf::option_wrapper_t<bool> keep_empty_workspace{"dynspaces/keep_empty_workspace"};
+	wf::option_wrapper_t<bool> fullscreen_apps_as_workspaces{
+	    "dynspaces/fullscreen_apps_as_workspaces"};
 
 	inline wf::point_t ws_point(int num) {
 		// TODO: if (vertical) ..
@@ -145,6 +147,7 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 	}
 
 	wf::signal_connection_t on_fullscreen = [=](wf::signal_data_t *ev) {
+		if (!fullscreen_apps_as_workspaces) return;
 		auto data = static_cast<wf::view_fullscreen_request_signal *>(ev);
 		if (data->state) {
 			auto wsid_launched_from = wsids[current_ws()];
@@ -175,6 +178,7 @@ struct wayfire_dynspaces : public wf::plugin_interface_t {
 	};
 
 	wf::signal_connection_t on_minimize = [=](wf::signal_data_t *ev) {
+		if (!fullscreen_apps_as_workspaces) return;
 		auto data = static_cast<wf::view_minimize_request_signal *>(ev);
 		if (data->view->has_data<dynspaces_appspace>() && data->state) {
 			auto appspace = data->view->get_data<dynspaces_appspace>();

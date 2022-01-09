@@ -9,5 +9,10 @@
 			<_long>Automatically ensure there's always one empty (unoccupied) workspace at the end of the list</_long>
 			<default>true</default>
 		</option>
+		<option name="fullscreen_apps_as_workspaces" type="bool">
+			<_short>Full-screen apps as workspaces</_short>
+			<_long>Try to treat full-screen windows as workspaces of their own</_long>
+			<default>true</default>
+		</option>
 	</plugin>
 </wayfire>
